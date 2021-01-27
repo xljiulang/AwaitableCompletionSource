@@ -7,18 +7,20 @@ namespace ConsoleApp
     {
         static async Task Main(string[] args)
         {
-            var source = AwaitableCompletionSource<string>.Create();
+            var source = AwaitableCompletionSource.Create<string>();
 
-            source.SetResultAfter("dfdf", TimeSpan.FromSeconds(1));
+            source.TrySetResult("1");
+            Console.WriteLine(await source.Task);
 
-            // source = AwaitableCompletionSource<string>.Create();
-            var rx = source.SetResult("d");
-            var r = await source;
-             
+            // 支持多次设置获取结果
+            source.TrySetResultAfter("2", TimeSpan.FromSeconds(1d));
+            Console.WriteLine(await source.Task);
+
+            // 实例使用完成之后，可以进行回收复用
+            source.Dispose();
+
 
             Console.ReadLine();
         }
-
-
     }
 }
