@@ -204,14 +204,19 @@ namespace System.Threading.Tasks
             /// <param name="result">结果</param>
             /// <param name="exception">异常</param>
             /// <returns></returns>
+            [MethodImpl(MethodImplOptions.NoInlining)]
             private bool SetCompleted(TResult result, Exception exception)
             {
-                if (this.IsCompleted == true)
+                if (ReferenceEquals(this.callback, callbackCompleted))
                 {
                     return false;
                 }
 
-                this.RemoveDelay();
+                if (this.hasDelay == true)
+                {
+                    this.hasDelay = false;
+                    this.delayTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                }
 
                 this.result = result;
                 this.exception = exception;
@@ -243,7 +248,7 @@ namespace System.Threading.Tasks
             /// <returns></returns>
             public TResult GetResult()
             {
-                if (this.IsCompleted == false)
+                if (ReferenceEquals(this.callback, callbackCompleted) == false)
                 {
                     throw new InvalidOperationException("Unable to get the result when incomplete");
                 }
@@ -285,19 +290,12 @@ namespace System.Threading.Tasks
             {
                 if (Interlocked.CompareExchange(ref this.isDisposed, 1, 0) == 0)
                 {
-                    this.RemoveDelay();
+                    if (this.hasDelay == true)
+                    {
+                        this.hasDelay = false;
+                        this.delayTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    }
                     pool.Enqueue(this);
-                }
-            }
-
-
-            [MethodImpl(MethodImplOptions.NoInlining)]
-            private void RemoveDelay()
-            {
-                if (this.hasDelay == true)
-                {
-                    this.hasDelay = false;
-                    this.delayTimer.Change(Timeout.Infinite, Timeout.Infinite);
                 }
             }
 
