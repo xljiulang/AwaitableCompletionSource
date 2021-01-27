@@ -1,7 +1,25 @@
 # AwaitableCompletionSource
 可重复使用、可回收复用的TaskCompletionSource方案，超低的内存分配
 
-### 创建或分配实例
+### 如何使用
+使用方式与TaskCompletionSource大体一致。但是要使用静态类Create来创建实例，使用完成后Dispose实例。
+```
+var source = AwaitableCompletionSource.Create<string>();
+
+source.TrySetResult("1");
+Console.WriteLine(await source.Task);
+
+// 支持多次设置获取结果
+source.TrySetResultAfter("2", TimeSpan.FromSeconds(1d));
+Console.WriteLine(await source.Task);
+
+// 实例使用完成之后，可以进行回收复用
+source.Dispose();
+```
+
+### Benchmark
+
+#### 创建或分配实例
 ``` ini
 
 BenchmarkDotNet=v0.12.1, OS=Windows 10.0.18363.1316 (1909/November2018Update/19H2)
@@ -17,7 +35,7 @@ Intel Core i7-8565U CPU 1.80GHz (Whiskey Lake), 1 CPU, 8 logical and 4 physical 
 |      TaskCompletionSource_Alloc | 10.23 ns | 0.185 ns | 0.164 ns | 0.0229 |     - |     - |      96 B |
 | AwaitableCompletionSource_Alloc | 30.91 ns | 0.146 ns | 0.136 ns |      - |     - |     - |         - |
 
-### 超时等待
+#### 超时等待
 ``` ini
 
 BenchmarkDotNet=v0.12.1, OS=Windows 10.0.18363.1316 (1909/November2018Update/19H2)
