@@ -3,8 +3,21 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>System.Threading.Tasks</RootNamespace>
-  </PropertyGroup>
- 
- 
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 
+    <Version>1.0.0</Version>
+    <Authors>laojiu</Authors>
+    <Company>laojiu</Company>
+    <Copyright>Copyright © laojiu 2021-2021</Copyright>
+    <Description>AwaitableCompletionSource在多个场景下可替代TaskCompletionSource，更少的cpu时间和内存分配。</Description>
+    <Summary>AwaitableCompletionSource在多个场景下可替代TaskCompletionSource，更少的cpu时间和内存分配。</Summary>
+
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/xljiulang/AwaitableCompletionSource</PackageProjectUrl>
+
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>Sign.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
 </Project>
