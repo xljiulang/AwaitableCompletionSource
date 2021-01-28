@@ -19,7 +19,7 @@ namespace Benchmarks
         public async Task AwaitableCompletionSource_SetResult()
         {
             using var source = AwaitableCompletionSource.Create<string>();
-            ThreadPool.QueueUserWorkItem(s => ((IAwaitableCompletionSource)s).TrySetResult("Result"), source);
+            ThreadPool.QueueUserWorkItem(s => ((IAwaitableCompletionSource<string>)s).TrySetResult("Result"), source);
             await source.Task;
         }
     }

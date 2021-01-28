@@ -135,6 +135,7 @@ namespace System.Threading.Tasks
             public void TrySetExceptionAfter(Exception exception, TimeSpan delay)
             {
                 this.exception = exception ?? throw new ArgumentNullException(nameof(exception));
+                this.result = default;
                 this.hasDelay = true;
                 this.delayTimer.Change(delay, Timeout.InfiniteTimeSpan);
             }
@@ -157,6 +158,7 @@ namespace System.Threading.Tasks
             public void TrySetResultAfter(TResult result, TimeSpan delay)
             {
                 this.result = result;
+                this.exception = null;
                 this.hasDelay = true;
                 this.delayTimer.Change(delay, Timeout.InfiniteTimeSpan);
             }
