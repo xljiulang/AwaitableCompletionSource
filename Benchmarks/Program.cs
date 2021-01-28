@@ -7,7 +7,8 @@ namespace Benchmarks
     {
         static void Main(string[] args)
         {
-            BenchmarkRunner.Run<SetResultBenchmark>();
+            BenchmarkRunner.Run<TransientSetResultBenchmark>();
+            BenchmarkRunner.Run<SingletonSetResultBenchmark>();
             BenchmarkRunner.Run<TimeoutBenchmark>();
             Console.ReadLine();
         }

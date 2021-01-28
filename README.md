@@ -19,7 +19,11 @@ source.Dispose();
 
 ### Benchmark
 
-#### 创建或分配实例
+#### TransientSetResult
+在频繁创建与回收AwaitableCompletionSource的场景，对于SetResult的使用，AwaitableCompletionSource的cpu时间明显高于TaskCompletionSource，但内存分配为0。
+
+``` ini
+
 ``` ini
 
 BenchmarkDotNet=v0.12.1, OS=Windows 10.0.18363.1316 (1909/November2018Update/19H2)
@@ -30,12 +34,37 @@ Intel Core i7-8565U CPU 1.80GHz (Whiskey Lake), 1 CPU, 8 logical and 4 physical 
 
 
 ```
-|                          Method |     Mean |    Error |   StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
-|-------------------------------- |---------:|---------:|---------:|-------:|------:|------:|----------:|
-|      TaskCompletionSource_Alloc | 10.23 ns | 0.185 ns | 0.164 ns | 0.0229 |     - |     - |      96 B |
-| AwaitableCompletionSource_Alloc | 30.91 ns | 0.146 ns | 0.136 ns |      - |     - |     - |         - |
+|                              Method |     Mean |    Error |   StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
+|------------------------------------ |---------:|---------:|---------:|-------:|------:|------:|----------:|
+|      TaskCompletionSource_SetResult | 39.92 ns | 0.201 ns | 0.179 ns | 0.0229 |     - |     - |      96 B |
+| AwaitableCompletionSource_SetResult | 86.19 ns | 0.315 ns | 0.295 ns |      - |     - |     - |         - |
+
+
+#### SingletonSetResult
+单例AwaitableCompletionSource的场景，对于SetResult的使用，AwaitableCompletionSource与TaskCompletionSource的cpu时间相当，内存分配为0。
+
+``` ini
+
+BenchmarkDotNet=v0.12.1, OS=Windows 10.0.18363.1316 (1909/November2018Update/19H2)
+Intel Core i7-8565U CPU 1.80GHz (Whiskey Lake), 1 CPU, 8 logical and 4 physical cores
+.NET Core SDK=5.0.100
+  [Host]     : .NET Core 5.0.0 (CoreCLR 5.0.20.51904, CoreFX 5.0.20.51904), X64 RyuJIT
+  DefaultJob : .NET Core 5.0.0 (CoreCLR 5.0.20.51904, CoreFX 5.0.20.51904), X64 RyuJIT
+
+
+```
+|                              Method |     Mean |    Error |   StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
+|------------------------------------ |---------:|---------:|---------:|-------:|------:|------:|----------:|
+|      TaskCompletionSource_SetResult | 41.46 ns | 0.744 ns | 1.180 ns | 0.0229 |     - |     - |      96 B |
+| AwaitableCompletionSource_SetResult | 49.30 ns | 0.528 ns | 0.494 ns |      - |     - |     - |         - |
+
+
 
 #### 超时等待
+在网络编程里，请求未必有响应来触发SetResult，或者在指定时间内没有触发SetResult,这时需要加入Timeout机制。
+TaskCompletionSource自制不包含这个功能，但可以配合Task.WhenAll来做到超时的功能，而AwaitableCompletionSource内置了SetResultAfter和SetExceptionAfter方法。
+使用瞬态的AwaitableCompletionSource和TaskCompletionSource作超时等待，AwaitableCompletionSource占很大的优势，如果是单例的AwaitableCompletionSource，则优势更明显。
+
 ``` ini
 
 BenchmarkDotNet=v0.12.1, OS=Windows 10.0.18363.1316 (1909/November2018Update/19H2)
