@@ -1,4 +1,7 @@
 # AwaitableCompletionSource
+```
+<PackageReference Include="AwaitableCompletionSource" Version="1.0.0" />
+```
 AwaitableCompletionSource在多个场景下可替代TaskCompletionSource，更少的cpu时间和内存分配。
 
 * 支持Singleton，单个实例持续使用；
