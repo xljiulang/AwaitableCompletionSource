@@ -3,7 +3,7 @@ AwaitableCompletionSource在多个场景下可替代TaskCompletionSource，更�
 
 * 支持Singleton，单个实例持续使用；
 * 支持Dispose后回收复用，创建实例0分配；
-* 支持超时自动设置结果或异常； 
+* 支持超时自动设置结果或异常，性能远好于TaskCompletionSource包装增加超时功能； 
 
 ### 如何使用
 使用方式与TaskCompletionSource大体一致。但是要使用静态类Create来创建实例，使用完成后Dispose实例。
