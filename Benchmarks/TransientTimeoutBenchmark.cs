@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Benchmarks
 {
     [MemoryDiagnoser]
-    public class TimeoutBenchmark
+    public class TransientTimeoutBenchmark
     {
         [Benchmark]
         public async Task<string> TaskCompletionSource_WithTimeout()
