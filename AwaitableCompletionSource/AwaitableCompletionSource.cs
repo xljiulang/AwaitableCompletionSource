@@ -134,6 +134,11 @@ namespace System.Threading.Tasks
             /// <exception cref="ArgumentNullException"></exception>
             public void TrySetExceptionAfter(Exception exception, TimeSpan delay)
             {
+                if (ReferenceEquals(this.callback, callbackCompleted))
+                {
+                    return;
+                }
+
                 this.exception = exception ?? throw new ArgumentNullException(nameof(exception));
                 this.result = default;
                 this.hasDelay = true;
@@ -157,6 +162,11 @@ namespace System.Threading.Tasks
             /// <param name="delay">延时</param> 
             public void TrySetResultAfter(TResult result, TimeSpan delay)
             {
+                if (ReferenceEquals(this.callback, callbackCompleted))
+                {
+                    return;
+                }
+
                 this.result = result;
                 this.exception = null;
                 this.hasDelay = true;
