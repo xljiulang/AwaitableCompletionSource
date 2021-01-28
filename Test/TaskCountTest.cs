@@ -22,7 +22,9 @@ namespace Test
             }
 
             var resultValue = 2;
-            var resultSources = sources.Where(i => ran.Next(1, 2) == 1).ToArray();
+            var resultSources = sources.Where(i => ran.Next(0, 1000) <500).ToArray();
+            Assert.NotEqual(sources.Length, resultSources.Length);
+
             foreach (var item in resultSources)
             {
                 ThreadPool.QueueUserWorkItem(s => ((IAwaitableCompletionSource)s).TrySetResult(resultValue), item);
@@ -52,7 +54,8 @@ namespace Test
             }
 
             var resultValue = 2;
-            var resultSources = sources.Where(i => ran.Next(1, 2) == 1).ToArray();
+            var resultSources = sources.Where(i => ran.Next(0, 1000) < 500).ToArray();
+            Assert.NotEqual(sources.Length, resultSources.Length);
             foreach (var item in resultSources)
             {
                 ThreadPool.QueueUserWorkItem(s => ((IAwaitableCompletionSource)s).TrySetResult(resultValue), item);
