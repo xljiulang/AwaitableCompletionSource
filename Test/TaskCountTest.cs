@@ -32,6 +32,11 @@ namespace Test
             var t = await Task.WhenAll(tasks);
             var sum = resultSources.Count() * resultValue;
 
+            foreach (var item in sources)
+            {
+                item.Dispose();
+            }
+
             Assert.Equal(sum, t.Sum());
         }
 
@@ -57,7 +62,13 @@ namespace Test
             var t = await Task.WhenAll(tasks);
             var sum = resultSources.Count() * resultValue;
 
+            foreach (var item in sources)
+            {
+                item.Dispose();
+            }
+
             Assert.Equal(sum, t.Sum());
+
         }
 
         static async Task<T> AwaitableToTask<T>(IAwaitableCompletionSource<T> awaitable)
