@@ -1,16 +1,24 @@
 # AwaitableCompletionSource
-可重复使用、可回收复用的TaskCompletionSource方案，超低的内存分配
+AwaitableCompletionSource在多个场景下可替代TaskCompletionSource，更少的cpu时间和内存分配。
+
+* 支持Singleton，单个实例持续使用；
+* 支持Dispose后回收复用，创建实例0分配；
+* 支持超时自动设置结果或异常； 
 
 ### 如何使用
 使用方式与TaskCompletionSource大体一致。但是要使用静态类Create来创建实例，使用完成后Dispose实例。
 ```
 var source = AwaitableCompletionSource.Create<string>();
 
-source.TrySetResult("1");
+ThreadPool.QueueUserWorkItem(s => ((IAwaitableCompletionSource)s).TrySetResult("1"), source);
 Console.WriteLine(await source.Task);
 
-// 支持多次设置获取结果
+// 支持多次设置获取结果 
 source.TrySetResultAfter("2", TimeSpan.FromSeconds(1d));
+Console.WriteLine(await source.Task);
+
+// 支持多次设置获取结果 
+source.TrySetResultAfter("3", TimeSpan.FromSeconds(2d));
 Console.WriteLine(await source.Task);
 
 // 实例使用完成之后，可以进行回收复用
