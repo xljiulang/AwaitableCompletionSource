@@ -15,7 +15,7 @@ namespace Benchmarks
             using var cancelSource = new CancellationTokenSource();
             var delayTask = Task.Delay(1000, cancelSource.Token);
 
-            source.TrySetResult("value");
+            ThreadPool.QueueUserWorkItem(s => ((TaskCompletionSource<string>)s).TrySetResult("Result"), source);
 
             var task = await Task.WhenAny(source.Task, delayTask);
             if (task == delayTask)
@@ -34,7 +34,7 @@ namespace Benchmarks
             using var source = AwaitableCompletionSource.Create<string>();
             source.TrySetResultAfter("timeout", TimeSpan.FromMilliseconds(1000d));
 
-            source.TrySetResult("value");
+            ThreadPool.QueueUserWorkItem(s => ((IAwaitableCompletionSource)s).TrySetResult("Result"), source);
 
             return await source.Task;
         }

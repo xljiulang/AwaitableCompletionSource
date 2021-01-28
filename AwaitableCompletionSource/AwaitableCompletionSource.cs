@@ -119,8 +119,8 @@ namespace System.Threading.Tasks
             {
                 if (pool.TryDequeue(out var source) == true)
                 {
-                    source.isDisposed = 0;
-                    source.callback = null;
+                    Interlocked.Exchange(ref source.isDisposed, 0);
+                    Interlocked.Exchange(ref source.callback, null);
                     return source;
                 }
                 return new AwaitableCompletionSourceImpl<TResult>();
@@ -207,7 +207,8 @@ namespace System.Threading.Tasks
             [MethodImpl(MethodImplOptions.NoInlining)]
             private bool SetCompleted(TResult result, Exception exception)
             {
-                if (ReferenceEquals(this.callback, callbackCompleted))
+                var continuation = Interlocked.Exchange(ref this.callback, callbackCompleted);
+                if (ReferenceEquals(continuation, callbackCompleted))
                 {
                     return false;
                 }
@@ -221,7 +222,6 @@ namespace System.Threading.Tasks
                 this.result = result;
                 this.exception = exception;
 
-                var continuation = Interlocked.Exchange(ref this.callback, callbackCompleted);
                 if (continuation != null)
                 {
                     ThreadPool.UnsafeQueueUserWorkItem(state => ((Action)state)(), continuation);
@@ -248,12 +248,11 @@ namespace System.Threading.Tasks
             /// <returns></returns>
             public TResult GetResult()
             {
-                if (ReferenceEquals(this.callback, callbackCompleted) == false)
+                if (ReferenceEquals(Interlocked.CompareExchange(ref this.callback, null, callbackCompleted), callbackCompleted) == false)
                 {
                     throw new InvalidOperationException("Unable to get the result when incomplete");
                 }
 
-                this.callback = null;
                 if (this.exception != null)
                 {
                     throw this.exception;

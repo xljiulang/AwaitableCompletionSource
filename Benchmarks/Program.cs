@@ -7,7 +7,7 @@ namespace Benchmarks
     {
         static void Main(string[] args)
         {
-            BenchmarkRunner.Run<AllocBenchmark>();
+            BenchmarkRunner.Run<SetResultBenchmark>();
             BenchmarkRunner.Run<TimeoutBenchmark>();
             Console.ReadLine();
         }
