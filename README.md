@@ -73,7 +73,7 @@ Intel Core i7-8565U CPU 1.80GHz (Whiskey Lake), 1 CPU, 8 logical and 4 physical 
 #### 超时等待
 在网络编程里，请求未必有响应来触发SetResult，或者在指定时间内没有触发SetResult，这时需要加入Timeout机制。
 
-* TaskCompletionSource自身不包含Timeout机制，但可以配合Task.WhenAll(Task.Delay(timeout),tcs.Task)来实现Timeout机制
+* TaskCompletionSource自身不包含Timeout机制，但可以配合CancellationTokenSource(delay)来实现Timeout机制
 * AwaitableCompletionSource直接内置了支持Timeout机制的TrySetResultAfter和TrySetExceptionAfter方法
 
 ``` ini
@@ -86,8 +86,9 @@ Intel Core i7-8565U CPU 1.80GHz (Whiskey Lake), 1 CPU, 8 logical and 4 physical 
 
 
 ```
-|                                Method |       Mean |    Error |   StdDev |  Gen 0 |  Gen 1 |  Gen 2 | Allocated |
-|-------------------------------------- |-----------:|---------:|---------:|-------:|-------:|-------:|----------:|
-|      TaskCompletionSource_WithTimeout | 1,814.7 ns | 34.81 ns | 37.25 ns | 0.1163 | 0.0401 | 0.0019 |     720 B |
-| AwaitableCompletionSource_WithTimeout |   177.7 ns |  2.48 ns |  2.20 ns | 0.0172 |      - |      - |      72 B |
+|                                Method |     Mean |   Error |  StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
+|-------------------------------------- |---------:|--------:|--------:|-------:|------:|------:|----------:|
+|      TaskCompletionSource_WithTimeout | 241.9 ns | 4.81 ns | 9.84 ns | 0.1526 |     - |     - |     640 B |
+| AwaitableCompletionSource_WithTimeout | 183.3 ns | 2.39 ns | 2.12 ns | 0.0172 |     - |     - |      72 B |
+
 
