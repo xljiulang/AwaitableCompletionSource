@@ -9,7 +9,7 @@ namespace Benchmarks
     public class TransientTimeoutBenchmark
     {
         [Benchmark]
-        public async Task<string> TaskCompletionSource_WithTimeout()
+        public async Task TaskCompletionSource_WithTimeout()
         {
             var source = new TaskCompletionSource<string>();
             using var cancelSource = new CancellationTokenSource(1000);
@@ -18,11 +18,11 @@ namespace Benchmarks
             // ThreadPool.QueueUserWorkItem(s => ((TaskCompletionSource<string>)s).TrySetResult("Result"), source);
             source.TrySetResult("Result");
 
-            return await source.Task;
+            await source.Task;
         }
 
         [Benchmark]
-        public async Task<string> AwaitableCompletionSource_WithTimeout()
+        public async Task AwaitableCompletionSource_WithTimeout()
         {
             using var source = AwaitableCompletionSource.Create<string>();
             source.TrySetResultAfter("timeout", TimeSpan.FromMilliseconds(1000d));
@@ -30,7 +30,7 @@ namespace Benchmarks
             // ThreadPool.QueueUserWorkItem(s => ((IAwaitableCompletionSource<string>)s).TrySetResult("Result"), source);
             source.TrySetResult("Result");
 
-            return await source.Task;
+            await source.Task;
         }
     }
 }

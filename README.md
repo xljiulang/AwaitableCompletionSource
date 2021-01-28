@@ -59,12 +59,13 @@ source.Dispose();
 
 |                                Method |     Mean |   Error |  StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
 |-------------------------------------- |---------:|--------:|--------:|-------:|------:|------:|----------:|
-|      TaskCompletionSource_WithTimeout | 241.9 ns | 4.81 ns | 9.84 ns | 0.1526 |     - |     - |     640 B |
-| AwaitableCompletionSource_WithTimeout | 183.3 ns | 2.39 ns | 2.12 ns | 0.0172 |     - |     - |      72 B |
+|      TaskCompletionSource_WithTimeout | 237.0 ns | 4.76 ns | 5.85 ns | 0.1357 |     - |     - |     568 B |
+| AwaitableCompletionSource_WithTimeout | 176.6 ns | 0.83 ns | 0.74 ns |      - |     - |     - |         - |
+
 
 
 #### Singleton超时等待
 |                                Method |     Mean |   Error |  StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
 |-------------------------------------- |---------:|--------:|--------:|-------:|------:|------:|----------:|
-|      TaskCompletionSource_WithTimeout | 244.4 ns | 4.91 ns | 4.35 ns | 0.1526 |     - |     - |     640 B |
-| AwaitableCompletionSource_WithTimeout | 149.0 ns | 1.99 ns | 1.76 ns | 0.0172 |     - |     - |      72 B |
+|      TaskCompletionSource_WithTimeout | 233.1 ns | 4.59 ns | 6.58 ns | 0.1357 |     - |     - |     568 B |
+| AwaitableCompletionSource_WithTimeout | 131.5 ns | 1.41 ns | 1.32 ns |      - |     - |     - |         - |
