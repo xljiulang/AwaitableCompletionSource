@@ -12,14 +12,13 @@ namespace Benchmarks
         public async Task<string> TaskCompletionSource_WithTimeout()
         {
             var source = new TaskCompletionSource<string>();
-            using var cancelSource = new CancellationTokenSource();
-            var delayTask = Task.Delay(1000, cancelSource.Token);
+            using var cancelSource = new CancellationTokenSource(1000);
+            cancelSource.Token.Register(() => source.TrySetResult("timeout"));
 
             // ThreadPool.QueueUserWorkItem(s => ((TaskCompletionSource<string>)s).TrySetResult("Result"), source);
             source.TrySetResult("Result");
 
-            var task = await Task.WhenAny(source.Task, delayTask);
-            return task == delayTask ? "timeout" : await source.Task;
+            return await source.Task;
         }
 
         [Benchmark]
