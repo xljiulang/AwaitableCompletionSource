@@ -19,14 +19,7 @@ namespace Benchmarks
             source.TrySetResult("Result");
 
             var task = await Task.WhenAny(source.Task, delayTask);
-            if (task == delayTask)
-            {
-                return "timeout";
-            }
-            else
-            {
-                return await source.Task;
-            }
+            return task == delayTask ? "timeout" : await source.Task;
         }
 
         [Benchmark]

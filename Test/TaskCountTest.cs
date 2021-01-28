@@ -32,7 +32,7 @@ namespace Test
 
             var tasks = sources.Select(a => AwaitableToTask<int>(a));
             var t = await Task.WhenAll(tasks);
-            var sum = resultSources.Count() * resultValue;
+            var sum = resultSources.Length * resultValue;
 
             foreach (var item in sources)
             {
@@ -63,7 +63,7 @@ namespace Test
 
             var tasks = sources.Select(a => AwaitableToTask<int>(a));
             var t = await Task.WhenAll(tasks);
-            var sum = resultSources.Count() * resultValue;
+            var sum = resultSources.Length * resultValue;
 
             foreach (var item in sources)
             {

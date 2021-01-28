@@ -129,7 +129,7 @@ namespace System.Threading.Tasks
             /// <summary>
             /// 指定时间后尝试设置结果值
             /// </summary>
-            /// <param name="result">结果值</param>
+            /// <param name="exception">异常</param>
             /// <param name="delay">延时</param>
             /// <exception cref="ArgumentNullException"></exception>
             public void TrySetExceptionAfter(Exception exception, TimeSpan delay)
@@ -201,11 +201,7 @@ namespace System.Threading.Tasks
             /// <returns></returns>
             public bool TrySetException(Exception exception)
             {
-                if (exception == null)
-                {
-                    throw new ArgumentNullException(nameof(exception));
-                }
-                return this.SetCompleted(result: default, exception);
+                return this.SetCompleted(result: default, exception ?? new ArgumentNullException(nameof(exception)));
             }
 
 
@@ -247,11 +243,7 @@ namespace System.Threading.Tasks
             /// <returns></returns>
             public IResultAwaiter<TResult> GetAwaiter()
             {
-                if (this.isDisposed != 0)
-                {
-                    throw new ObjectDisposedException(this.GetType().Name);
-                }
-                return this;
+                return this.isDisposed == 0 ? this : throw new ObjectDisposedException(this.GetType().Name);
             }
 
             /// <summary>
@@ -260,16 +252,9 @@ namespace System.Threading.Tasks
             /// <returns></returns>
             public TResult GetResult()
             {
-                if (ReferenceEquals(Interlocked.CompareExchange(ref this.callback, null, callbackCompleted), callbackCompleted) == false)
-                {
-                    throw new InvalidOperationException("Unable to get the result when incomplete");
-                }
-
-                if (this.exception != null)
-                {
-                    throw this.exception;
-                }
-                return this.result;
+                return ReferenceEquals(Interlocked.CompareExchange(ref this.callback, null, callbackCompleted), callbackCompleted)
+                    ? this.exception != null ? throw this.exception : this.result
+                    : throw new InvalidOperationException("Unable to get the result when incomplete");
             }
 
             /// <summary>
