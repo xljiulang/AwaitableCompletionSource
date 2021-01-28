@@ -33,7 +33,6 @@ source.Dispose();
 #### TransientSetResult
 在频繁创建与回收AwaitableCompletionSource的场景，对于SetResult的使用，AwaitableCompletionSource的cpu时间明显高于TaskCompletionSource，但内存分配为0。
 
-``` ini
 
 ``` ini
 
@@ -49,7 +48,7 @@ Intel Core i7-8565U CPU 1.80GHz (Whiskey Lake), 1 CPU, 8 logical and 4 physical 
 |------------------------------------ |---------:|---------:|---------:|-------:|------:|------:|----------:|
 |      TaskCompletionSource_SetResult | 39.92 ns | 0.201 ns | 0.179 ns | 0.0229 |     - |     - |      96 B |
 | AwaitableCompletionSource_SetResult | 86.19 ns | 0.315 ns | 0.295 ns |      - |     - |     - |         - |
-
+```
 
 #### SingletonSetResult
 单例AwaitableCompletionSource的场景，对于SetResult的使用，AwaitableCompletionSource与TaskCompletionSource的cpu时间相当，内存分配为0。
@@ -68,13 +67,14 @@ Intel Core i7-8565U CPU 1.80GHz (Whiskey Lake), 1 CPU, 8 logical and 4 physical 
 |------------------------------------ |---------:|---------:|---------:|-------:|------:|------:|----------:|
 |      TaskCompletionSource_SetResult | 41.46 ns | 0.744 ns | 1.180 ns | 0.0229 |     - |     - |      96 B |
 | AwaitableCompletionSource_SetResult | 49.30 ns | 0.528 ns | 0.494 ns |      - |     - |     - |         - |
-
+```
 
 
 #### 超时等待
-在网络编程里，请求未必有响应来触发SetResult，或者在指定时间内没有触发SetResult,这时需要加入Timeout机制。
-TaskCompletionSource自制不包含这个功能，但可以配合Task.WhenAll来做到超时的功能，而AwaitableCompletionSource内置了SetResultAfter和SetExceptionAfter方法。
-使用瞬态的AwaitableCompletionSource和TaskCompletionSource作超时等待，AwaitableCompletionSource占很大的优势，如果是单例的AwaitableCompletionSource，则优势更明显。
+在网络编程里，请求未必有响应来触发SetResult，或者在指定时间内没有触发SetResult，这时需要加入Timeout机制。
+
+* TaskCompletionSource自身不包含Timeout机制，但可以配合Task.WhenAll(Task.Delay(timeout),tcs.Task)来实现Timeout机制
+* AwaitableCompletionSource直接内置了支持Timeout机制的TrySetResultAfter和TrySetExceptionAfter方法
 
 ``` ini
 
@@ -90,3 +90,4 @@ Intel Core i7-8565U CPU 1.80GHz (Whiskey Lake), 1 CPU, 8 logical and 4 physical 
 |-------------------------------------- |-----------:|---------:|---------:|-------:|-------:|-------:|----------:|
 |      TaskCompletionSource_WithTimeout | 1,814.7 ns | 34.81 ns | 37.25 ns | 0.1163 | 0.0401 | 0.0019 |     720 B |
 | AwaitableCompletionSource_WithTimeout |   177.7 ns |  2.48 ns |  2.20 ns | 0.0172 |      - |      - |      72 B |
+```
