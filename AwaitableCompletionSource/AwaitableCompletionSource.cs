@@ -72,6 +72,11 @@ namespace System.Threading.Tasks
             /// </summary>
             private int isDisposed = False;
 
+            /// <summary>
+            /// 同步上下文 
+            /// </summary>
+            private SynchronizationContext synchronizationContext;
+
 
             /// <summary>
             /// 延续的任务
@@ -88,10 +93,6 @@ namespace System.Threading.Tasks
             /// </summary>
             private Exception exception;
 
-            /// <summary>
-            /// 同步上下文 
-            /// </summary>
-            private SynchronizationContext synchronizationContext;
 
 
             /// <summary>
@@ -127,9 +128,13 @@ namespace System.Threading.Tasks
                     source = new AwaitableCompletionSourceImpl<TResult>();
                 }
 
-                if (continueOnCapturedContext == true)
+                if (continueOnCapturedContext)
                 {
                     source.synchronizationContext = SynchronizationContext.Current;
+                }
+                else
+                {
+                    source.synchronizationContext = null;
                 }
                 return source;
             }
