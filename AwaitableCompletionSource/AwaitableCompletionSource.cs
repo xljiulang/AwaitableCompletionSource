@@ -128,14 +128,7 @@ namespace System.Threading.Tasks
                     source = new AwaitableCompletionSourceImpl<TResult>();
                 }
 
-                if (continueOnCapturedContext)
-                {
-                    source.synchronizationContext = SynchronizationContext.Current;
-                }
-                else
-                {
-                    source.synchronizationContext = null;
-                }
+                source.synchronizationContext = continueOnCapturedContext ? SynchronizationContext.Current : null;
                 return source;
             }
 
