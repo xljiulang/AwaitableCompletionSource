@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp", "ConsoleApp\Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmarks", "Benchmarks\Benchmarks.csproj", "{6837FCB3-280F-449B-81A8-2AB7F82FF92C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{D2C4D63C-218D-4F8C-BFED-208056F88138}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{D2C4D63C-218D-4F8C-BFED-208056F88138}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinFormsApp", "WinFormsApp\WinFormsApp.csproj", "{4EABC499-7B4C-4180-B9F4-32E93F627792}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{D2C4D63C-218D-4F8C-BFED-208056F88138}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2C4D63C-218D-4F8C-BFED-208056F88138}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2C4D63C-218D-4F8C-BFED-208056F88138}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4EABC499-7B4C-4180-B9F4-32E93F627792}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EABC499-7B4C-4180-B9F4-32E93F627792}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4EABC499-7B4C-4180-B9F4-32E93F627792}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4EABC499-7B4C-4180-B9F4-32E93F627792}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -5,18 +5,29 @@ using System.Runtime.CompilerServices;
 namespace System.Threading.Tasks
 {
     /// <summary>
-    /// 提供完成源的创建
+    /// 提供可等待的完成源的创建
     /// </summary>
     public static class AwaitableCompletionSource
     {
         /// <summary>
-        /// 创建一个完成源
+        /// 创建一个可等待的完成源
         /// </summary>
         /// <typeparam name="TResult">结果类型</typeparam>
         /// <returns></returns>
         public static IAwaitableCompletionSource<TResult> Create<TResult>()
         {
-            return AwaitableCompletionSourceImpl<TResult>.Create();
+            return Create<TResult>(continueOnCapturedContext: true);
+        }
+
+        /// <summary>
+        /// 创建一个可等待的完成源
+        /// </summary>
+        /// <typeparam name="TResult">结果类型</typeparam>
+        /// <param name="continueOnCapturedContext">是否使用同步上下文</param>
+        /// <returns></returns>
+        public static IAwaitableCompletionSource<TResult> Create<TResult>(bool continueOnCapturedContext)
+        {
+            return AwaitableCompletionSourceImpl<TResult>.Create(continueOnCapturedContext);
         }
 
         /// <summary>
@@ -66,7 +77,7 @@ namespace System.Threading.Tasks
 
             /// <summary>
             /// 结果值
-            /// </summary>
+            /// </summary> 
             private TResult result;
 
             /// <summary>
@@ -74,6 +85,10 @@ namespace System.Threading.Tasks
             /// </summary>
             private Exception exception;
 
+            /// <summary>
+            /// 同步上下文 
+            /// </summary>
+            private SynchronizationContext synchronizationContext;
 
 
             /// <summary>
@@ -89,7 +104,7 @@ namespace System.Threading.Tasks
             /// <summary>
             /// 获取任务
             /// </summary>
-            IAwaitableTask<TResult> IAwaitableCompletionSource<TResult>.Task => this;
+            public IAwaitableTask<TResult> Task => this;
 
 
             /// <summary>
@@ -114,16 +129,25 @@ namespace System.Threading.Tasks
             /// <summary>
             /// 创建实例
             /// </summary>
+            /// <param name="continueOnCapturedContext"></param>
             /// <returns></returns>
-            public static AwaitableCompletionSourceImpl<TResult> Create()
+            public static AwaitableCompletionSourceImpl<TResult> Create(bool continueOnCapturedContext)
             {
                 if (pool.TryDequeue(out var source) == true)
                 {
                     Interlocked.Exchange(ref source.isDisposed, 0);
                     Interlocked.Exchange(ref source.callback, null);
-                    return source;
                 }
-                return new AwaitableCompletionSourceImpl<TResult>();
+                else
+                {
+                    source = new AwaitableCompletionSourceImpl<TResult>();
+                }
+
+                if (continueOnCapturedContext == true)
+                {
+                    source.synchronizationContext = SynchronizationContext.Current;
+                }
+                return source;
             }
 
             /// <summary>
@@ -232,7 +256,7 @@ namespace System.Threading.Tasks
 
                 if (continuation != null)
                 {
-                    ThreadPool.UnsafeQueueUserWorkItem(state => ((Action)state)(), continuation);
+                    this.ExecuteContinuation(continuation);
                 }
                 return true;
             }
@@ -275,7 +299,23 @@ namespace System.Threading.Tasks
                 if (ReferenceEquals(this.callback, callbackCompleted) ||
                       ReferenceEquals(Interlocked.CompareExchange(ref this.callback, continuation, null), callbackCompleted))
                 {
-                    Task.Run(continuation);
+                    this.ExecuteContinuation(continuation);
+                }
+            }
+
+            /// <summary>
+            /// 执行延续任务
+            /// </summary>
+            /// <param name="continuation"></param>
+            private void ExecuteContinuation(Action continuation)
+            {
+                if (this.synchronizationContext == null)
+                {
+                    ThreadPool.UnsafeQueueUserWorkItem(state => ((Action)state)(), continuation);
+                }
+                else
+                {
+                    this.synchronizationContext.Post(state => ((Action)state)(), continuation);
                 }
             }
 
