@@ -1,7 +1,7 @@
 ﻿namespace System.Threading.Tasks
 {
     /// <summary>
-    /// 完成源接口
+    /// 可等待完成源接口
     /// </summary>
     public interface IAwaitableCompletionSource<TResult> : IAwaitableCompletionSource
     {

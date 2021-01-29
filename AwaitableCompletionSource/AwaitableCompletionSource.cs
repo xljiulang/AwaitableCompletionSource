@@ -9,6 +9,9 @@ namespace System.Threading.Tasks
     /// </summary>
     public static class AwaitableCompletionSource
     {
+        private const int False = 0;
+        private const int True = 1;
+
         /// <summary>
         /// 创建一个可等待的完成源
         /// </summary>
@@ -23,7 +26,7 @@ namespace System.Threading.Tasks
         /// 创建一个可等待的完成源
         /// </summary>
         /// <typeparam name="TResult">结果类型</typeparam>
-        /// <param name="continueOnCapturedContext">是否使用同步上下文</param>
+        /// <param name="continueOnCapturedContext">是否捕获同步上下文执行延续的任务</param>
         /// <returns></returns>
         public static IAwaitableCompletionSource<TResult> Create<TResult>(bool continueOnCapturedContext)
         {
@@ -67,7 +70,7 @@ namespace System.Threading.Tasks
             /// <summary>
             /// 是否已释放
             /// </summary>
-            private int isDisposed = 0;
+            private int isDisposed = False;
 
 
             /// <summary>
@@ -99,7 +102,7 @@ namespace System.Threading.Tasks
             /// <summary>
             /// 获取任务是否已完成
             /// </summary>
-            public bool IsCompleted => ReferenceEquals(this.callback, callbackCompleted);
+            public bool IsCompleted => this.callback == callbackCompleted;
 
             /// <summary>
             /// 获取任务
@@ -108,35 +111,16 @@ namespace System.Threading.Tasks
 
 
             /// <summary>
-            /// 可重复等待的手动设置结果的任务源
-            /// </summary> 
-            private AwaitableCompletionSourceImpl()
-            {
-                this.delayTimer = new Timer(DelayCallback, this, Timeout.Infinite, Timeout.Infinite);
-            }
-
-            /// <summary>
-            /// 延时回调
-            /// </summary>
-            /// <param name="state"></param>
-            private static void DelayCallback(object state)
-            {
-                var source = (AwaitableCompletionSourceImpl<TResult>)state;
-                source.hasDelay = false;
-                source.SetCompleted(source.result, source.exception);
-            }
-
-            /// <summary>
             /// 创建实例
             /// </summary>
-            /// <param name="continueOnCapturedContext"></param>
+            /// <param name="continueOnCapturedContext">是否捕获同步上下文执行延续的任务</param>
             /// <returns></returns>
             public static AwaitableCompletionSourceImpl<TResult> Create(bool continueOnCapturedContext)
             {
                 if (pool.TryDequeue(out var source) == true)
                 {
-                    Interlocked.Exchange(ref source.isDisposed, 0);
-                    Interlocked.Exchange(ref source.callback, null);
+                    source.isDisposed = False;
+                    source.callback = null;
                 }
                 else
                 {
@@ -151,51 +135,92 @@ namespace System.Threading.Tasks
             }
 
             /// <summary>
+            /// 可重复等待的手动设置结果的任务源
+            /// </summary> 
+            private AwaitableCompletionSourceImpl()
+            {
+                this.delayTimer = new Timer(DelayTimerCallback, this, Timeout.Infinite, Timeout.Infinite);
+            }
+
+            /// <summary>
+            /// 延时回调
+            /// </summary>
+            /// <param name="state"></param>
+            private static void DelayTimerCallback(object state)
+            {
+                var source = (AwaitableCompletionSourceImpl<TResult>)state;
+                source.hasDelay = false;
+                source.SignalCompleted(source.result, source.exception);
+            }
+
+            /// <summary>
             /// 指定时间后尝试设置结果值
             /// </summary>
             /// <param name="exception">异常</param>
             /// <param name="delay">延时</param>
             /// <exception cref="ArgumentNullException"></exception>
+            /// <exception cref="ArgumentOutOfRangeException"></exception>
             public void TrySetExceptionAfter(Exception exception, TimeSpan delay)
             {
-                if (ReferenceEquals(this.callback, callbackCompleted))
+                if (exception == null)
+                {
+                    throw new ArgumentNullException(nameof(exception));
+                }
+
+                if (delay < TimeSpan.Zero)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(delay));
+                }
+
+                if (this.callback == callbackCompleted)
                 {
                     return;
                 }
 
-                this.exception = exception ?? throw new ArgumentNullException(nameof(exception));
                 this.result = default;
+                this.exception = exception;
+
                 this.hasDelay = true;
                 this.delayTimer.Change(delay, Timeout.InfiniteTimeSpan);
             }
 
-            /// <summary>
-            /// 指定时间后尝试设置结果值
-            /// </summary>
-            /// <param name="result">结果值</param>
-            /// <param name="delay">延时</param> 
-            public void TrySetResultAfter(object result, TimeSpan delay)
-            {
-                this.TrySetResultAfter((TResult)result, delay);
-            }
 
             /// <summary>
             /// 指定时间后尝试设置结果值
             /// </summary>
             /// <param name="result">结果值</param>
             /// <param name="delay">延时</param> 
+            /// <exception cref="ArgumentOutOfRangeException"></exception>
             public void TrySetResultAfter(TResult result, TimeSpan delay)
             {
-                if (ReferenceEquals(this.callback, callbackCompleted))
+                if (delay < TimeSpan.Zero)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(delay));
+                }
+
+                if (this.callback == callbackCompleted)
                 {
                     return;
                 }
 
                 this.result = result;
                 this.exception = null;
+
                 this.hasDelay = true;
                 this.delayTimer.Change(delay, Timeout.InfiniteTimeSpan);
             }
+
+            /// <summary>
+            /// 指定时间后尝试设置结果值
+            /// </summary>
+            /// <param name="result">结果值</param>
+            /// <param name="delay">延时</param> 
+            /// <exception cref="ArgumentOutOfRangeException"></exception>
+            public void TrySetResultAfter(object result, TimeSpan delay)
+            {
+                this.TrySetResultAfter((TResult)result, delay);
+            }
+
 
             /// <summary>
             /// 尝试设置结果值
@@ -214,7 +239,7 @@ namespace System.Threading.Tasks
             /// <returns></returns>
             public bool TrySetResult(TResult result)
             {
-                return this.SetCompleted(result, exception: default);
+                return this.SignalCompleted(result, exception: default);
             }
 
             /// <summary>
@@ -225,7 +250,7 @@ namespace System.Threading.Tasks
             /// <returns></returns>
             public bool TrySetException(Exception exception)
             {
-                return this.SetCompleted(result: default, exception ?? new ArgumentNullException(nameof(exception)));
+                return this.SignalCompleted(result: default, exception ?? new ArgumentNullException(nameof(exception)));
             }
 
 
@@ -237,10 +262,10 @@ namespace System.Threading.Tasks
             /// <param name="exception">异常</param>
             /// <returns></returns>
             [MethodImpl(MethodImplOptions.NoInlining)]
-            private bool SetCompleted(TResult result, Exception exception)
+            private bool SignalCompleted(TResult result, Exception exception)
             {
                 var continuation = Interlocked.Exchange(ref this.callback, callbackCompleted);
-                if (ReferenceEquals(continuation, callbackCompleted))
+                if (continuation == callbackCompleted)
                 {
                     return false;
                 }
@@ -267,7 +292,7 @@ namespace System.Threading.Tasks
             /// <returns></returns>
             public IResultAwaiter<TResult> GetAwaiter()
             {
-                return this.isDisposed == 0 ? this : throw new ObjectDisposedException(this.GetType().Name);
+                return this.isDisposed == False ? this : throw new ObjectDisposedException(this.GetType().Name);
             }
 
             /// <summary>
@@ -276,9 +301,13 @@ namespace System.Threading.Tasks
             /// <returns></returns>
             public TResult GetResult()
             {
-                return ReferenceEquals(Interlocked.CompareExchange(ref this.callback, null, callbackCompleted), callbackCompleted)
-                    ? this.exception != null ? throw this.exception : this.result
-                    : throw new InvalidOperationException("Unable to get the result when incomplete");
+                if (this.callback != callbackCompleted)
+                {
+                    throw new InvalidOperationException("Unable to get the result when incomplete");
+                }
+
+                this.callback = null;
+                return this.exception != null ? throw this.exception : this.result;
             }
 
             /// <summary>
@@ -296,8 +325,8 @@ namespace System.Threading.Tasks
             /// <param name="continuation">延续的任务</param>
             public void UnsafeOnCompleted(Action continuation)
             {
-                if (ReferenceEquals(this.callback, callbackCompleted) ||
-                      ReferenceEquals(Interlocked.CompareExchange(ref this.callback, continuation, null), callbackCompleted))
+                if (this.callback == callbackCompleted ||
+                    Interlocked.CompareExchange(ref this.callback, continuation, null) == callbackCompleted)
                 {
                     this.ExecuteContinuation(continuation);
                 }
@@ -306,7 +335,7 @@ namespace System.Threading.Tasks
             /// <summary>
             /// 执行延续任务
             /// </summary>
-            /// <param name="continuation"></param>
+            /// <param name="continuation">延续任务</param>
             private void ExecuteContinuation(Action continuation)
             {
                 if (this.synchronizationContext == null)
@@ -324,7 +353,7 @@ namespace System.Threading.Tasks
             /// </summary>
             public void Dispose()
             {
-                if (Interlocked.CompareExchange(ref this.isDisposed, 1, 0) == 0)
+                if (Interlocked.CompareExchange(ref this.isDisposed, True, False) == False)
                 {
                     if (this.hasDelay == true)
                     {

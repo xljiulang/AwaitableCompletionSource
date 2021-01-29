@@ -1,12 +1,12 @@
 ﻿namespace System.Threading.Tasks
 {
     /// <summary>
-    /// 完成源接口
+    /// 可等待完成源接口
     /// </summary>
     public interface IAwaitableCompletionSource : IDisposable
     {
         /// <summary>
-        /// 获取完成源对应结果类型
+        /// 获取对应结果类型
         /// </summary>
         Type ResultType { get; }
 
